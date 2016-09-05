@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+
+require 'httparty'
+require 'optparse'
+require 'ostruct'
+
+# That was simple
+class StatusCakeAPI
+  include HTTParty
+  base_uri 'https://www.statuscake.com/API/'
+
+  attr_accessor :statuscake_user
+  attr_accessor :check_id
+
+  def initialize(check_id, statuscake_user, app_key)
+    @statuscake_user = statuscake_user
+    @app_key = app_key
+    @check_url = '/Tests/Details/?TestID=' << check_id
+  end
+
+  def get_status
+    self.class.get(@check_url, :headers => { "API" => @app_key, "Username" => @statuscake_user })
+  end
+end
+
+# options should include StatusCake user and the test ID
+class StatusCakeAPICheckParser
+  def self.parse(args)
+    options = OpenStruct.new
+    options.check_id = nil
+    options.statuscake_user = nil
+
+    optparse = OptionParser.new do |opts|
+      opts.banner = "Usage: check_statuscake.rb [options]"
+      opts.separator ""
+      opts.separator "Specific options:"
+
+      opts.on("-i", "--statuscake-check-id ID", 'Numerical id of StatusCake test') do |arg|
+        options.check_id = arg
+      end
+
+      opts.on("-u", "--statuscake-username username", "StatusCake username") do |arg|
+        options.statuscake_user = arg
+      end
+
+      opts.on("-k", "--statuscake-api-key appkey", "StatusCake API key") do |arg|
+        options.app_key = arg
+      end
+    end
+
+    optparse.parse!(args)
+    options
+  end
+end
+
+options = StatusCakeAPICheckParser.parse(ARGV)
+
+begin
+  sa = StatusCakeAPI.new(options.check_id, options.statuscake_user, options.app_key)
+  r = sa.get_status
+
+  if r.success?
+    if(r.parsed_response && r.parsed_response.is_a?(Object))
+      if r.parsed_response["ErrNo"].is_a?(Integer)
+        puts "CRITICAL: StatusCake ErrNo #{r.parsed_response["ErrNo"]} detected for the check with id #{options.check_id}. StatusCake error message is #{r.parsed_response["Error"]}"
+        exit 2
+      else
+        if r.parsed_response["Status"] == 'Up'
+          puts "OK: StatusCake reports check #{r.parsed_response['WebsiteName']} in state UP"
+          exit 0
+        else
+          puts "CRITICAL: StatusCake reports check #{r.parsed_response['WebsiteName']} in state DOWN"
+          exit 2
+        end
+      end
+    else
+      puts 'CRITICAL: Invalid response from StatusCake API (response does not appear to be a valid object)'
+      exit 2
+    end
+  else
+    puts "CRITICAL: StatusCake API returned error"
+    exit 2
+  end
+rescue SocketError
+  puts "CRITICAL: StatusCheck API unreachable"
+  exit 2
+end
