@@ -38,4 +38,5 @@ define service {
         service_description             Code Enigma StatusCake
         check_command                   check_statuscake!1335305
         use                             statuscake-service
-}```
+}
+```
