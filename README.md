@@ -40,3 +40,9 @@ define service {
         use                             statuscake-service
 }
 ```
+
+Note the `check_statuscake!1335305` line - this tells Nagios to use the `check_statuscake` command we defined above and pass it the argument `1335305`, which is the ID of this particular test. You can get your test IDs either from the edit URL of the test in the StatusCake web GUI (e.g. https://www.statuscake.com/App/AllStatus.php?tid=1335305) or you can retrieve a list of all your tests via the API using the Get All Tests method: https://www.statuscake.com/api/Tests/Get%20All%20Tests.md
+
+The curl command for Get All Tests looks like this:
+
+`curl -H "API: YOURAPIKEY" -H "Username: YOURUSERNAME" -X GET https://www.statuscake.com/API/Tests/`
