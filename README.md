@@ -27,13 +27,16 @@ You now have the necessary script in place and Nagios is aware of the command an
 
 **Important** - this file is a sample only, your check_period, contact_groups, etc. may be different.
 
-Optionally, you may also download and use the the `check_statuscake_all_checks` script. This is a simple Bash script that calls `check_statuscake` for each test returned by the StatusCake API for a given account username and API key. Installation is straightforward, just copy `check_statuscake_all_checks` to the Nagios plugins directory and make sure it is executable by the Nagios user. Usage is simply:
+**Optional** - you may also download and use the the `check_statuscake_all_checks` script. This is a simple Bash script that calls `check_statuscake` for each test returned by the StatusCake API for a given account username and API key. Installation is straightforward, just copy `check_statuscake_all_checks` to the Nagios plugins directory and make sure it is executable by the Nagios user. Usage is simply:
 
 ```
 /usr/lib/nagios/plugins/check_statuscake_all_checks USERNAME APIKEY
 ```
 
 As long as `check_statuscake` is there in the same directory and executable, it will just work. You could of couse make a similar service definition and command for this check, if you wanted to have Nagios use it, but it's probably more useful as a standalone script for a "quick check" of your StatusCake tests.
+
+Original "check all" script by Miguel Jacq:
+https://github.com/mig5
 
 Now to set up some actual checks in Nagios...
 
