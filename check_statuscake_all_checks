@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+    echo $0: usage: check_statuscake_all_checks username apikey
+    exit 1
+fi
+
+username=$1
+apikey=$2
+
+checks=`curl -H "API: $apikey" -H "Username: $username" -X GET https://www.statuscake.com/API/Tests/ | python -c "exec(\"import json,sys\\nobj=json.load(sys.stdin);\\nfor test in obj: print test[\'TestID\']\")"`
+
+errors=
+
+for check in ${checks[@]}; do
+  ruby check_statuscake -u $username -k $apikey -i $check 
+  if [ $? -eq 0 ]; then
+    continue
+  else
+    errors=("${errors[@]}" $(./check_statuscake -u $username -k $apikey -i $check))
+  fi
+done
+
+if [[ ${#errors[@]} -gt 1 ]]; then
+  echo ${errors[@]}
+  exit 2
+else
+  echo "OK: All StatusCake tests returning OK"
+  exit 0
+fi
